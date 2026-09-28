@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import './style.css';
 import { art } from './art';
 import './story-art';
+import './adventure-art';
 import {stories, storyIds, storyTargets} from './stories';
 import {petCare,resetPetCare} from './pet-care';
 import { StoryAudio } from './music';
@@ -106,37 +107,37 @@ class CastleGame extends Phaser.Scene {
       this.tweens.add({targets:star,y:star.y-15,alpha:.15,angle:25,duration:1700+i*90,yoyo:true,repeat:-1});
     }
     ([...storyIds,'pets'] as const).forEach((id,i)=>{
-      const story=id==='pets'?{name:'Забота о питомце',guest:'dog'}:stories[id],y=225+i*139;
-      const card=this.add.container(240,y);
-      card.add(this.panel(0,0,424,123,[0xf4e5ed,0xe8e8f8,0xe7efe2,0xf8e8d6][i],0xffffff));
-      card.add(this.add.ellipse(-108,42,125,13,[0xe3cbd9,0xd3d4e9,0xcbdcc3,0xe7d1b6][i]));
+      const story=id==='pets'?{name:'Забота о питомце',guest:'dog'}:stories[id],x=132+(i%2)*216,y=247+Math.floor(i/2)*174;
+      const card=this.add.container(x,y);
+      card.add(this.panel(0,0,200,158,[0xf4e5ed,0xe8e8f8,0xe7efe2,0xeee2f5,0xe0eff2,0xf8e8d6][i],0xffffff));
+      card.add(this.add.ellipse(-20,34,125,13,0xd8ccd7));
       const key=id==='pets'?'cat':id==='castle'?'castle0':id+'_castle0';
-      const building=this.add.image(-125,-5,key).setDisplaySize(109,97);
+      const building=this.add.image(-24,-16,key).setDisplaySize(100,94);
       card.add(building);
-      const guest=this.add.image(-59,26,story.guest).setDisplaySize(61,61);
+      const guest=this.add.image(45,10,story.guest).setDisplaySize(61,61);
       card.add(guest);
-      this.tweens.add({targets:guest,y:19,angle:i===1?6:-4,duration:1100+i*200,yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
+      this.tweens.add({targets:guest,y:4,angle:i===1?6:-4,duration:1100+i*200,yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
       if(id==='space')this.tweens.add({targets:building,y:-13,duration:1900,yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
-      card.add(this.text(-12,-25,story.name,17,ink,true).setWordWrapWidth(190));
-      card.add(this.add.circle(146,31,25,0xffffff,.85));
-      const play=this.add.triangle(150,31,0,0,0,22,18,11,0xa487b9);
+      card.add(this.text(0,45,story.name,14,ink,true).setWordWrapWidth(182).setOrigin(.5,0));
+      card.add(this.add.circle(75,-49,17,0xffffff,.85));
+      const play=this.add.triangle(77,-49,0,0,0,16,13,8,0xa487b9);
       card.add(play);
-      this.tweens.add({targets:play,x:153,duration:900,yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
-      card.setSize(424,123).setInteractive({useHandCursor:true});
+      this.tweens.add({targets:play,x:79,duration:900,yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
+      card.setSize(200,158).setInteractive({useHandCursor:true});
       let opening=false;
       card.on('pointerdown',()=>this.tweens.add({targets:card,scale:.98,duration:90}));
       card.on('pointerout',()=>this.tweens.add({targets:card,scale:1,duration:90}));
       card.on('pointerup',()=>{
         if(opening)return;opening=true;card.disableInteractive();
-        this.sparkles(385,y+31);chime([523,659,784]);
+        this.sparkles(x,y);chime([523,659,784]);
         this.time.delayedCall(180,()=>{
           this.showPets=id==='pets';
           if(id!=='pets'&&id!==save.story)save=restoreStory(id,save.sound);
           persist(save);this.showStories=false;this.category='dress';this.scene.restart();
         });
       });
-      card.setAlpha(.01).setX(262);
-      this.tweens.add({targets:card,x:240,alpha:1,duration:330,delay:i*100,ease:'Sine.easeOut'});
+      card.setAlpha(.01).setX(x+12);
+      this.tweens.add({targets:card,x,alpha:1,duration:330,delay:i*100,ease:'Sine.easeOut'});
     });
     this.button(240,757,410,'Заново: '+(this.showPets?'Забота о питомце':this.story.name),()=>{
       if(this.showPets)resetPetCare();
@@ -197,7 +198,7 @@ class CastleGame extends Phaser.Scene {
   }
   private princess(x: number, y: number, scale = 1) {
     const c = this.add.container(x, y);
-    const body = this.add.image(0, 0, 'body').setDisplaySize(240,360);
+    const body = this.add.image(0, 0, this.texture('body')).setDisplaySize(240,360);
     c.add(body);
     for (const category of ['shoes','dress','crown','earrings'] as Category[]) {
       const item = this.add.image(0, 0, this.texture(`${category}${save.outfit[category]}`)).setDisplaySize(240,360);
@@ -237,7 +238,7 @@ class CastleGame extends Phaser.Scene {
       const symbol=this.add.image(0,-5,this.texture(`${category}Icon${category==='earrings'?2:0}`));
       const aspect=symbol.width/symbol.height;
       symbol.setDisplaySize(Math.min(43,34*aspect),Math.min(34,43/aspect));tab.add(symbol);
-      tab.add(this.text(0,17,category==='crown'&&save.story==='space'?'Шлемы':labels[category],10, this.category === category ? '#866393' : muted, true).setOrigin(.5));
+      tab.add(this.text(0,17,category==='crown'?(save.story==='space'?'Шлемы':save.story==='wizard'||save.story==='pirate'?'Шляпы':save.story==='forest'?'Венки':labels[category]):labels[category],10, this.category === category ? '#866393' : muted, true).setOrigin(.5));
       tab.setSize(104,44).setInteractive({ useHandCursor:true }).on('pointerdown', () => { this.category = category; this.drawPalette(); });
       c.add(tab);
     });
@@ -420,7 +421,7 @@ class CastleGame extends Phaser.Scene {
       {x:75,icon:'dance',label:'Танцевать',run:()=>this.dance()},
       {x:185,icon:'balloon',label:'Шарики',run:()=>this.balloons()},
       {x:295,icon:'bubbles',label:'Пузыри',run:()=>this.bubbles()},
-      {x:405,icon:this.story.special,label:save.story==='space'?'Полёт':save.story==='forest'?'Волшебство':'Салют',run:()=>this.special()},
+      {x:405,icon:this.story.special,label:save.story==='space'?'Полёт':save.story==='forest'||save.story==='wizard'?'Волшебство':save.story==='pirate'?'Сокровища':'Салют',run:()=>this.special()},
     ];
     actions.forEach(a=>this.button(a.x,649,94,a.label,a.run,true,a.icon));
   }
@@ -467,6 +468,10 @@ class CastleGame extends Phaser.Scene {
     if(save.story==='space'){
       const ship=this.add.image(240,480,'rocket').setDisplaySize(70,95).setDepth(22);
       this.tweens.add({targets:ship,y:210,angle:20,x:350,duration:1800,ease:'Sine.easeIn',onComplete:()=>{ship.destroy();this.sparkles(350,210);}});
+    }else if(save.story==='wizard'){
+      for(let i=0;i<8;i++)this.time.delayedCall(i*120,()=>{const star=this.add.star(240,450,5,8,20,0xf3d57e).setDepth(22);star.setInteractive().on('pointerdown',()=>{this.sparkles(star.x,star.y);star.destroy();});this.tweens.add({targets:star,x:90+i*43,y:240+(i%3)*45,angle:180,alpha:0,duration:1800,onComplete:()=>star.destroy()});});
+    }else if(save.story==='pirate'){
+      const chest=this.add.image(240,380,'treasure').setDisplaySize(90,90).setDepth(22);this.tweens.add({targets:chest,y:320,angle:8,duration:450,yoyo:true,repeat:2,onComplete:()=>chest.destroy()});for(let i=0;i<10;i++)this.time.delayedCall(i*90,()=>this.sparkles(90+i*33,330+(i%2)*70,0xefcd68));
     }else if(save.story==='forest'){
       for(let i=0;i<5;i++)this.time.delayedCall(i*140,()=>{
         const heart=this.add.image(310,484,'heart').setDisplaySize(25,25).setDepth(22);

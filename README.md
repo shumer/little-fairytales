@@ -50,7 +50,7 @@ Local tests require Google Chrome. Playwright checks the complete story, incorre
 - `ART.md`: background description and original prompt.
 - `scripts/offline.mjs`: production cache generation.
 
-The game includes three fairytales: a castle party, space friends, and a dragon's home. Each has its own outfits or colors, building, pieces, and visitor. Animations are simple and do not include full walking cycles. In-game text is in Russian, and spoken instructions are not yet available. Further playtesting with a child should check whether the actions are clear, touch targets are comfortable, and the stories are fun to repeat.
+The game includes five fairytales: a castle party, space friends, a dragon's home, a wizard's tower, and a pirate adventure. The forest has a winged fairy, the tower has a bearded wizard, and the ship has a pirate with a tricorn hat. Each has its own outfits or colors, building, pieces, and visitor. Animations are simple and do not include full walking cycles. In-game text is in Russian, and spoken instructions are not yet available. Further playtesting with a child should check whether the actions are clear, touch targets are comfortable, and the stories are fun to repeat.
 
 ## Music
 
@@ -58,7 +58,7 @@ An original 16-bar waltz loops roughly every 34 seconds, with a soft music-box s
 
 ## Story selection and celebrations
 
-Every launch starts with an animated selection screen: four large cards, gently swaying characters, a floating rocket, and twinkling stars. Tap a card to start or resume its activity. The button with four colored squares at the top returns to this screen. Each story has its own saved progress. The circular-arrow button in the menu restarts the current activity.
+Every launch starts with an animated selection screen: six large cards in two columns, gently swaying characters, a floating rocket, and twinkling stars. Tap a card to start or resume its activity. The button with four colored squares at the top returns to this screen. Each story has its own saved progress. The circular-arrow button in the menu restarts the current activity.
 
 Opening the door reveals a visitor, a gift, confetti, and balloons. Picture buttons trigger dancing, balloons, bubbles, and a special action: fireworks, a rocket, or dragon hearts. Tap balloons and bubbles to pop them. The number of simultaneous play objects is limited. From the finale, return to the outfit, building, or story selection.
 
@@ -72,8 +72,10 @@ To roll back an update, revert its commit on `main` and wait for a successful de
 
 ## Pet care
 
-The fourth card opens a care activity for a cat or dog. Choose a pet using its picture. Tap the shower, brush, bowl, or ball, or drag it onto the pet. Each activity includes animation and hearts. Completed activities are saved separately for the cat and dog and can be repeated. There are no hunger timers, penalties, or required order. Tap the pet to give it affection.
+The pet card opens a care activity for a cat or dog. Choose a pet using its picture. Tap the shower, brush, bowl, or ball, or drag it onto the pet. Each activity includes animation and hearts. Completed activities are saved separately for the cat and dog and can be repeated. There are no hunger timers, penalties, or required order. Tap the pet to give it affection.
 
 Pets also stroll, stretch, and curl up for a nap when idle. Use the moon button for a nap and the stretching-pet picture to stretch. Tap or stroke a pet to wake it and receive an affectionate reaction. Tap or drag the ball beside the pet to send it chasing the toy.
 
 Pet movement uses a single articulated character with continuous leg motion tied to travel distance, a flexible tail, blinking, breathing, and blended resting poses. The renderer is in `src/pet-rig.ts`.
+
+The wizard builds a tower, meets an owl, and releases magical stars. The pirate assembles a ship, meets a parrot, and celebrates finding treasure. Both stories have independent outfit and building saves. Character layers and new story artwork are in `src/adventure-art.ts`.
