@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import {PetRig} from './pet-rig';
 export type PetKind = 'cat' | 'dog';
 type Care = 'wash' | 'brush' | 'feed' | 'play';
 const actions: Care[] = ['wash','brush','feed','play'];
@@ -17,7 +18,7 @@ export function resetPetCare(){write({kind:'cat',done:{cat:[],dog:[]}});}
 
 export function petCare(scene:Phaser.Scene,chime:(notes?:number[])=>void,onBack:()=>void){
  const saved=read();let busy=false;
- let mood='idle', walkFrame=0, lastTouch=scene.time.now;
+ let mood='idle', lastTouch=scene.time.now;
  let motion:Phaser.Tweens.Tween|undefined;
  const game=document.querySelector('#game');
  const text=(x:number,y:number,t:string,size=18)=>scene.add.text(x,y,t,{fontFamily:'Arial',fontSize:`${size}px`,color:'#65536e'}).setOrigin(.5);
@@ -36,29 +37,25 @@ export function petCare(scene:Phaser.Scene,chime:(notes?:number[])=>void,onBack:
  });
  scene.add.ellipse(240,486,304,51,0xc5bad3,.3);
  scene.add.ellipse(240,474,316,65,0xf5dfd5,.85);
- const pet=scene.add.image(240,382,saved.kind).setDisplaySize(250,250);
+ const pet=new PetRig(scene,240,382,saved.kind);
  const dirt=scene.add.container(0,0);
  if(!saved.done[saved.kind].includes('wash'))for(const [x,y]of [[194,424],[273,420],[291,389]])dirt.add(scene.add.ellipse(x,y,17,11,0xa8866c,.25));
- function pose(value:string){mood=value;game?.setAttribute('data-pet-mood',value);}
+ function pose(value:string){mood=value;pet.setMood(value);game?.setAttribute('data-pet-mood',value);}
  function settle(){
-  motion?.stop();scene.tweens.killTweensOf(pet);pet.setTexture(saved.kind).setDisplaySize(250,250).setPosition(240,382).setAngle(0).setFlipX(false);dirt.setVisible(true);pose('idle');lastTouch=scene.time.now;
+  motion?.stop();scene.tweens.killTweensOf(pet);pet.setAngle(0);motion=scene.tweens.add({targets:pet,x:240,duration:400,ease:'Sine.easeInOut'});dirt.setVisible(true);pose('idle');lastTouch=scene.time.now;
  }
  function rest(){
-  if(busy)return;settle();dirt.setVisible(false);pose('sleep');pet.setTexture(`${saved.kind}Sleep`);
-  motion=scene.tweens.add({targets:pet,scaleY:pet.scaleY*1.035,duration:1300,yoyo:true,repeat:-1});
+  if(busy)return;settle();dirt.setVisible(false);pose('sleep');
   message.setText('Тс-с-с... Погладь друга, чтобы разбудить');
  }
  function stretch(){
-  if(busy)return;settle();dirt.setVisible(false);pose('stretch');pet.setTexture(`${saved.kind}Stretch`);
-  motion=scene.tweens.add({targets:pet,scaleX:pet.scaleX*1.08,duration:650,yoyo:true,onComplete:()=>{settle();hearts();}});
+  if(busy)return;settle();dirt.setVisible(false);pose('stretch');
+  scene.time.delayedCall(1600,()=>{if(mood==='stretch'){settle();hearts();}});
  }
  function walk(x:number,complete:()=>void=()=>settle()){
-  motion?.stop();scene.tweens.killTweensOf(pet);dirt.setVisible(false);pose('walk');pet.setFlipX(x<pet.x);
-  motion=scene.tweens.add({targets:pet,x,y:396,duration:Math.max(450,Math.abs(x-pet.x)*7),ease:'Sine.easeInOut',onComplete:complete});
+  motion?.stop();scene.tweens.killTweensOf(pet);dirt.setVisible(false);pose('walk');
+  motion=scene.tweens.add({targets:pet,x,duration:Math.max(450,Math.abs(x-pet.x)*7),ease:'Sine.easeInOut',onComplete:complete});
  }
- scene.time.addEvent({delay:140,loop:true,callback:()=>{
-  if(mood==='walk'){pet.setTexture(`${saved.kind}Walk${walkFrame++%2}`);pet.y=396+(walkFrame%2)*3;}
- }});
  scene.time.addEvent({delay:6000,loop:true,callback:()=>{
   if(busy||mood!=='idle'||scene.time.now-lastTouch<5500)return;
   const choice=Phaser.Math.Between(0,2);
@@ -74,7 +71,7 @@ export function petCare(scene:Phaser.Scene,chime:(notes?:number[])=>void,onBack:
  let stroking=false, strokeX=0;
  function affection(){
   if(busy)return;settle();hearts();chime([392,494]);pose('petting');
-  motion=scene.tweens.add({targets:pet,angle:5,y:374,duration:180,yoyo:true,repeat:1,onComplete:()=>settle()});
+  scene.time.delayedCall(850,()=>{if(mood==='petting')settle();});
  }
  pet.setInteractive({useHandCursor:true}).on('pointerdown',(p:Phaser.Input.Pointer)=>{stroking=true;strokeX=p.x;affection();});
  pet.on('pointermove',(p:Phaser.Input.Pointer)=>{if(stroking&&p.isDown&&Math.abs(p.x-strokeX)>35){strokeX=p.x;affection();}});
@@ -131,7 +128,7 @@ export function petCare(scene:Phaser.Scene,chime:(notes?:number[])=>void,onBack:
    scene.tweens.add({targets:brush,x:203,y:416,duration:350,yoyo:true,repeat:1});
   }else if(action==='feed'){
    const bowl=scene.add.image(240,480,'petBowl').setDisplaySize(100,80);effect.add(bowl);
-   scene.tweens.add({targets:pet,angle:7,duration:210,yoyo:true,repeat:2});
+
    for(let i=0;i<5;i++){
     const crumb=scene.add.circle(219+i*10,466,4,0xc5a179);effect.add(crumb);
     scene.tweens.add({targets:crumb,y:406,alpha:0,duration:500,delay:i*120});
