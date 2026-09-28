@@ -2,7 +2,7 @@ import { test, expect, type Page } from '@playwright/test';
 const key='little-castle-v1';
 const read=(page:Page)=>page.evaluate(k=>JSON.parse(localStorage.getItem(k)||'null'),key);
 async function ready(page:Page,stage:string){await expect(page.locator('#game')).toHaveAttribute('data-stage',stage);await page.waitForTimeout(300);}
-async function tap(page:Page,x:number,y:number){const b=await page.locator('canvas').boundingBox();if(!b)throw Error('Missing canvas.');await page.mouse.click(b.x+x*b.width/480,b.y+y*b.height/820);await page.waitForTimeout(80);}
+async function tap(page:Page,x:number,y:number){const b=await page.locator('canvas').boundingBox();if(!b)throw Error('Missing canvas.');await page.mouse.click(b.x+x*b.width/480,b.y+y*b.height/820,{delay:80});await page.waitForTimeout(80);}
 
 async function enterSaved(page:Page,stage:string){
  await ready(page,'stories');const saved=await read(page).catch(()=>null);
