@@ -73,3 +73,5 @@ To roll back an update, revert its commit on `main` and wait for a successful de
 ## Pet care
 
 The fourth card opens a care activity for a cat or dog. Choose a pet using its picture. Tap the shower, brush, bowl, or ball, or drag it onto the pet. Each activity includes animation and hearts. Completed activities are saved separately for the cat and dog and can be repeated. There are no hunger timers, penalties, or required order. Tap the pet to give it affection.
+
+Pets also stroll, stretch, and curl up for a nap when idle. Use the moon button for a nap and the stretching-pet picture to stretch. Tap or stroke a pet to wake it and receive an affectionate reaction. Tap or drag the ball beside the pet to send it chasing the toy.

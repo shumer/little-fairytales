@@ -164,3 +164,27 @@ test('Pet care supports both pets, every activity, dragging and saved progress',
  await tap(page,178,194);await ready(page,'pets');await expect(page.locator('#game')).toHaveAttribute('data-care','wash,brush,feed,play');
  await tap(page,240,757);await ready(page,'stories');await tap(page,240,225);await ready(page,'dress');expect(errors).toEqual([]);
 });
+
+
+test('Pets sleep, wake, stretch and chase a draggable ball',async({page})=>{
+ const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto('/');await ready(page,'stories');await tap(page,240,642);await ready(page,'pets');
+ const game=page.locator('#game');
+ for(const kind of ['cat','dog']){
+  if(kind==='dog')await tap(page,302,194);
+  await tap(page,49,284);await expect(game).toHaveAttribute('data-pet-mood','sleep');
+  await page.screenshot({path:`test-results/${kind}-sleep.png`});
+  await tap(page,240,390);await expect(game).toHaveAttribute('data-pet-mood','petting');
+  await expect(game).toHaveAttribute('data-pet-mood','idle');
+  await tap(page,431,284);await expect(game).toHaveAttribute('data-pet-mood','stretch');
+  await page.screenshot({path:`test-results/${kind}-stretch.png`});
+  await expect(game).toHaveAttribute('data-pet-mood','idle');
+  await page.mouse.move(365,474);await page.mouse.down();await page.mouse.move(90,450,{steps:12});await page.mouse.up();
+  await expect(game).toHaveAttribute('data-pet-mood','walk');
+  await page.screenshot({path:`test-results/${kind}-chase.png`});
+  await expect(game).toHaveAttribute('data-pet-mood','idle');
+  await expect(game).toHaveAttribute('data-care','play');
+  await tap(page,75,608);await expect(game).toHaveAttribute('data-care','play,wash');
+ }
+ expect(errors).toEqual([]);
+});

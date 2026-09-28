@@ -36,3 +36,14 @@ art.petShower=svg('<path d="M60 32V18q0-12 14-12t14 12" stroke="#95b5c9" stroke-
 art.petBrush=svg('<rect x="41" y="48" width="19" height="46" rx="9" fill="#d4a4bb"/><rect x="20" y="9" width="62" height="54" rx="22" fill="#e9bfd1" stroke="#b98da9" stroke-width="3"/><path d="M32 21v30m12-30v30m12-30v30m12-30v30" stroke="#fff3df" stroke-width="4" stroke-linecap="round"/>',100,100);
 art.petBowl=svg('<ellipse cx="50" cy="46" rx="36" ry="18" fill="#c7a680"/><circle cx="32" cy="39" r="7" fill="#aa815c"/><circle cx="50" cy="34" r="7" fill="#d2b08a"/><circle cx="65" cy="44" r="8" fill="#ac825b"/><circle cx="45" cy="49" r="8" fill="#ba9068"/><path d="M14 45h72l8 39H6Z" fill="#a8c9b9" stroke="#80a391" stroke-width="3"/><path d="M44 60q-10-8-12 2q0 6 18 15q18-9 18-15q-2-10-12-2l-6 5z" fill="#f5e5cf"/>',100,100);
 art.petBall=svg('<circle cx="50" cy="50" r="38" fill="#eac6a2" stroke="#c5a28a" stroke-width="3"/><path d="M15 36q35 19 70 0M34 15q-10 35 0 70M67 15q10 35 0 70" stroke="#b3acd5" stroke-width="11" fill="none"/><ellipse cx="37" cy="28" rx="8" ry="5" fill="#fff1d8"/>',100,100);
+
+for(const kind of ['cat','dog']){
+ const ears=kind==='cat'?'<path d="M98 80l-5-30 23 18 18-17 5 31" fill="#edc298"/>':'<path d="M103 70q-25-21-20 19t23-1m26-18q25-20 18 19t-19-1" fill="#bb8d6f"/>';
+ const head=`${ears}<ellipse cx="119" cy="88" rx="27" ry="23" fill="#f3d1ad"/><path d="M103 87q5 5 10 0m12 0q5 5 10 0" fill="none" stroke="#73564f" stroke-width="3" stroke-linecap="round"/><ellipse cx="120" cy="97" rx="5" ry="3" fill="#9b7162"/>`;
+ art[`${kind}Sleep`]=svg(`<ellipse cx="79" cy="110" rx="59" ry="35" fill="#edc298"/>${head}<path d="M35 100q-24 50 59 34q29-9 1-20" stroke="#dba77b" stroke-width="17" fill="none" stroke-linecap="round"/>`,160,160);
+ art[`${kind}Stretch`]=svg(`<path d="M29 102q-26-36-11-48" stroke="#dba77b" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M32 135V86q37-25 66 29l32 22m-80-2 3-35 52 34" stroke="#edc298" stroke-width="17" fill="none" stroke-linecap="round"/><g transform="translate(0 23)">${head}</g>`,160,160);
+ for(let frame=0;frame<2;frame++){
+  const step=frame?9:-9;
+  art[`${kind}Walk${frame}`]=svg(`<path d="M36 92Q6 83 18 55" stroke="#dba77b" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M46 105l${step} 33m24-33l${-step} 33m20-33l${step} 33m18-33l${-step} 33" stroke="#dba77b" stroke-width="12" stroke-linecap="round"/><ellipse cx="73" cy="99" rx="43" ry="24" fill="#edc298"/><g transform="translate(-3 -18)">${head}</g>`,160,160);
+ }
+}

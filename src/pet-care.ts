@@ -17,6 +17,9 @@ export function resetPetCare(){write({kind:'cat',done:{cat:[],dog:[]}});}
 
 export function petCare(scene:Phaser.Scene,chime:(notes?:number[])=>void,onBack:()=>void){
  const saved=read();let busy=false;
+ let mood='idle', walkFrame=0, lastTouch=scene.time.now;
+ let motion:Phaser.Tweens.Tween|undefined;
+ const game=document.querySelector('#game');
  const text=(x:number,y:number,t:string,size=18)=>scene.add.text(x,y,t,{fontFamily:'Arial',fontSize:`${size}px`,color:'#65536e'}).setOrigin(.5);
  const panel=(x:number,y:number,w:number,h:number,color=0xfffcf8)=>{
   const g=scene.add.graphics();g.fillStyle(color,.97).fillRoundedRect(x-w/2,y-h/2,w,h,22);g.lineStyle(2,0xe4d4e7).strokeRoundedRect(x-w/2,y-h/2,w,h,22);return g;
@@ -36,15 +39,72 @@ export function petCare(scene:Phaser.Scene,chime:(notes?:number[])=>void,onBack:
  const pet=scene.add.image(240,382,saved.kind).setDisplaySize(250,250);
  const dirt=scene.add.container(0,0);
  if(!saved.done[saved.kind].includes('wash'))for(const [x,y]of [[194,424],[273,420],[291,389]])dirt.add(scene.add.ellipse(x,y,17,11,0xa8866c,.25));
- scene.tweens.add({targets:pet,y:379,duration:1500,yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
+ function pose(value:string){mood=value;game?.setAttribute('data-pet-mood',value);}
+ function settle(){
+  motion?.stop();scene.tweens.killTweensOf(pet);pet.setTexture(saved.kind).setDisplaySize(250,250).setPosition(240,382).setAngle(0).setFlipX(false);dirt.setVisible(true);pose('idle');lastTouch=scene.time.now;
+ }
+ function rest(){
+  if(busy)return;settle();dirt.setVisible(false);pose('sleep');pet.setTexture(`${saved.kind}Sleep`);
+  motion=scene.tweens.add({targets:pet,scaleY:pet.scaleY*1.035,duration:1300,yoyo:true,repeat:-1});
+  message.setText('Тс-с-с... Погладь друга, чтобы разбудить');
+ }
+ function stretch(){
+  if(busy)return;settle();dirt.setVisible(false);pose('stretch');pet.setTexture(`${saved.kind}Stretch`);
+  motion=scene.tweens.add({targets:pet,scaleX:pet.scaleX*1.08,duration:650,yoyo:true,onComplete:()=>{settle();hearts();}});
+ }
+ function walk(x:number,complete:()=>void=()=>settle()){
+  motion?.stop();scene.tweens.killTweensOf(pet);dirt.setVisible(false);pose('walk');pet.setFlipX(x<pet.x);
+  motion=scene.tweens.add({targets:pet,x,y:396,duration:Math.max(450,Math.abs(x-pet.x)*7),ease:'Sine.easeInOut',onComplete:complete});
+ }
+ scene.time.addEvent({delay:140,loop:true,callback:()=>{
+  if(mood==='walk'){pet.setTexture(`${saved.kind}Walk${walkFrame++%2}`);pet.y=396+(walkFrame%2)*3;}
+ }});
+ scene.time.addEvent({delay:6000,loop:true,callback:()=>{
+  if(busy||mood!=='idle'||scene.time.now-lastTouch<5500)return;
+  const choice=Phaser.Math.Between(0,2);
+  if(choice===0)rest();else if(choice===1)stretch();else walk(Phaser.Math.Between(130,350),()=>walk(240));
+ }});
+ pose('idle');
  function hearts(){
   for(let i=0;i<3;i++){
-   const h=scene.add.image(204+i*36,320,'heart').setDisplaySize(22,22).setDepth(12);
-   scene.tweens.add({targets:h,y:265-i*11,alpha:0,duration:900+i*150,onComplete:()=>h.destroy()});
+   const h=scene.add.image(pet.x-36+i*36,pet.y-62,'heart').setDisplaySize(22,22).setDepth(12);
+   scene.tweens.add({targets:h,y:pet.y-117-i*11,alpha:0,duration:900+i*150,onComplete:()=>h.destroy()});
   }
  }
- pet.setInteractive({useHandCursor:true}).on('pointerdown',()=>{if(!busy){hearts();chime([392,494]);}});
+ let stroking=false, strokeX=0;
+ function affection(){
+  if(busy)return;settle();hearts();chime([392,494]);pose('petting');
+  motion=scene.tweens.add({targets:pet,angle:5,y:374,duration:180,yoyo:true,repeat:1,onComplete:()=>settle()});
+ }
+ pet.setInteractive({useHandCursor:true}).on('pointerdown',(p:Phaser.Input.Pointer)=>{stroking=true;strokeX=p.x;affection();});
+ pet.on('pointermove',(p:Phaser.Input.Pointer)=>{if(stroking&&p.isDown&&Math.abs(p.x-strokeX)>35){strokeX=p.x;affection();}});
+ scene.input.on('pointerup',()=>{stroking=false;});
  const message=text(240,527,'Нажми на предмет или принеси его другу',15);
+ for(const [x,label,action] of [[49,'☾',rest],[431,'↔',stretch]] as const){
+  panel(x,284,66,64);
+  if(label==='↔')scene.add.image(x,282,`${saved.kind}Stretch`).setDisplaySize(60,60);else text(x,282,label,34);
+  scene.add.zone(x,284,66,64).setInteractive({useHandCursor:true}).on('pointerdown',action);
+ }
+ const ball=scene.add.image(365,474,'petBall').setDisplaySize(49,49).setDepth(11).setInteractive({useHandCursor:true,draggable:true});
+ let ballDragged=false;
+ function chase(x:number){
+  if(busy){ball.setPosition(365,474);return;}
+  settle();busy=true;pose('play');message.setText('Лови! Мячик можно бросить ещё раз');
+  const target=Phaser.Math.Clamp(x,90,390);ball.setPosition(target,460);
+  scene.tweens.add({targets:ball,y:480,angle:ball.angle+180,duration:300,yoyo:true});
+  walk(Phaser.Math.Clamp(target,130,350),()=>{
+   hearts();chime([659,784]);
+   scene.time.delayedCall(200,()=>walk(240,()=>{
+    busy=false;settle();
+    if(!saved.done[saved.kind].includes('play'))saved.done[saved.kind].push('play');write(saved);refresh();
+   }));
+  });
+ }
+ ball.on('pointerdown',()=>{ballDragged=false;});
+ ball.on('dragstart',()=>{ballDragged=true;});
+ ball.on('drag',(_p:Phaser.Input.Pointer,x:number,y:number)=>{if(!busy)ball.setPosition(Phaser.Math.Clamp(x,70,410),Phaser.Math.Clamp(y,330,490));});
+ ball.on('dragend',()=>chase(ball.x));
+ ball.on('pointerup',()=>{if(!ballDragged)chase(ball.x>240?110:370);});
  panel(240,623,440,143);
  const ticks:Partial<Record<Care,Phaser.GameObjects.Text>>={};
  function refresh(){
@@ -53,7 +113,9 @@ export function petCare(scene:Phaser.Scene,chime:(notes?:number[])=>void,onBack:
   document.querySelector('#game')?.setAttribute('data-care',saved.done[saved.kind].join(','));
  }
  function perform(action:Care){
-  if(busy)return;busy=true;
+  if(busy)return;
+  if(action==='play'){chase(ball.x>240?110:370);return;}
+  settle();busy=true;pose(action);
   message.setText({wash:'Тёплый душ и пушистая пена!',brush:'Какая мягкая шёрстка!',feed:'Вкусный обед!',play:'Лови мячик!'}[action]);
   const effect=scene.add.container(0,0).setDepth(10);
   if(action==='wash'){
@@ -74,14 +136,10 @@ export function petCare(scene:Phaser.Scene,chime:(notes?:number[])=>void,onBack:
     const crumb=scene.add.circle(219+i*10,466,4,0xc5a179);effect.add(crumb);
     scene.tweens.add({targets:crumb,y:406,alpha:0,duration:500,delay:i*120});
    }
-  }else{
-   const ball=scene.add.image(100,460,'petBall').setDisplaySize(61,61);effect.add(ball);
-   scene.tweens.add({targets:ball,x:374,y:415,angle:250,duration:640,yoyo:true,ease:'Sine.easeInOut'});
-   scene.tweens.add({targets:pet,x:264,angle:8,duration:320,yoyo:true,repeat:1});
   }
   chime([523,659,784]);
   scene.time.delayedCall(1450,()=>{
-   effect.destroy(true);pet.setAngle(0).setX(240);busy=false;
+   effect.destroy(true);settle();busy=false;
    if(!saved.done[saved.kind].includes(action))saved.done[saved.kind].push(action);
    write(saved);refresh();hearts();
    message.setText(saved.done[saved.kind].length===4?'Друг счастлив! Можно поиграть ещё':saved.kind==='cat'?'Мур-мур! Что будем делать дальше?':'Гав-гав! Что будем делать дальше?');
