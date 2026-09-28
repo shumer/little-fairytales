@@ -3,6 +3,7 @@ import './style.css';
 import { art } from './art';
 import './story-art';
 import {stories, storyIds, storyTargets} from './stories';
+import {petCare,resetPetCare} from './pet-care';
 import { StoryAudio } from './music';
 import { fresh, persist, restore, restoreStory, pieceNames, categories, type Save, type Category, type Piece, type Stage } from './state';
 
@@ -15,6 +16,7 @@ function chime(notes = [523, 659, 784]) { soundtrack.chime(notes); }
 
 class CastleGame extends Phaser.Scene {
   private showStories = true;
+  private showPets = false;
   private guest?: Phaser.GameObjects.Image;
   private hero?: Phaser.GameObjects.Container;
   private dancing = false;
@@ -52,10 +54,10 @@ class CastleGame extends Phaser.Scene {
     this.input.dragDistanceThreshold = 8;
     this.toys.clear(); this.dancing=false; this.specialBusy=false;
     this.pending.clear(); this.slots = {}; this.partImages = {}; this.outfitLayers = {}; this.guestArrived = false;
-    this.add.image(W / 2, H / 2, !this.showStories&&save.story==='space'?'spaceBackground':'garden').setDisplaySize(W, H);
+    this.add.image(W / 2, H / 2, !this.showStories&&!this.showPets&&save.story==='space'?'spaceBackground':'garden').setDisplaySize(W, H);
     this.add.rectangle(240, 76, 480, 152, 0xfffbf6, .88);
     this.text(26, 28, 'МАЛЕНЬКИЕ СКАЗКИ', 12, muted).setLetterSpacing(2);
-    this.text(26, 58, this.showStories?'Куда отправимся?':this.story.name, 23, ink, true);
+    this.text(26, 58, this.showStories?'Куда отправимся?':this.showPets?'Забота о питомце':this.story.name, 23, ink, true);
     this.add.image(377,45,'worlds').setDisplaySize(32,32);
     this.add.zone(377,45,56,60).setInteractive({useHandCursor:true}).on('pointerdown',()=>this.openStories());
     const sound = this.add.image(438, 45, save.sound ? 'sound' : 'mute').setDisplaySize(29, 29);
@@ -67,6 +69,13 @@ class CastleGame extends Phaser.Scene {
       this.cameras.main.fadeIn(350,255,249,243);
       this.events.once('shutdown',()=>this.input.removeAllListeners());
       document.querySelector('#game')?.setAttribute('data-stage','stories');
+      return;
+    }
+    if(this.showPets){
+      petCare(this,chime,()=>this.openStories());
+      this.events.once('shutdown',()=>this.input.removeAllListeners());
+      document.querySelector('#game')?.setAttribute('data-stage','pets');
+      document.querySelector('#game')?.setAttribute('data-story','pets');
       return;
     }
     const stageIndex = ['dress','castle','party'].indexOf(save.stage);
@@ -96,12 +105,12 @@ class CastleGame extends Phaser.Scene {
       const star=this.add.star(30+(i*97)%420,164+(i*61)%540,4,2,7,0xf1d59a,.6);
       this.tweens.add({targets:star,y:star.y-15,alpha:.15,angle:25,duration:1700+i*90,yoyo:true,repeat:-1});
     }
-    storyIds.forEach((id,i)=>{
-      const story=stories[id],y=270+i*157;
+    ([...storyIds,'pets'] as const).forEach((id,i)=>{
+      const story=id==='pets'?{name:'Забота о питомце',guest:'dog'}:stories[id],y=225+i*139;
       const card=this.add.container(240,y);
-      card.add(this.panel(0,0,424,139,[0xf4e5ed,0xe8e8f8,0xe7efe2][i],0xffffff));
-      card.add(this.add.ellipse(-108,42,125,13,[0xe3cbd9,0xd3d4e9,0xcbdcc3][i]));
-      const key=id==='castle'?'castle0':id+'_castle0';
+      card.add(this.panel(0,0,424,123,[0xf4e5ed,0xe8e8f8,0xe7efe2,0xf8e8d6][i],0xffffff));
+      card.add(this.add.ellipse(-108,42,125,13,[0xe3cbd9,0xd3d4e9,0xcbdcc3,0xe7d1b6][i]));
+      const key=id==='pets'?'cat':id==='castle'?'castle0':id+'_castle0';
       const building=this.add.image(-125,-5,key).setDisplaySize(109,97);
       card.add(building);
       const guest=this.add.image(-59,26,story.guest).setDisplaySize(61,61);
@@ -113,7 +122,7 @@ class CastleGame extends Phaser.Scene {
       const play=this.add.triangle(150,31,0,0,0,22,18,11,0xa487b9);
       card.add(play);
       this.tweens.add({targets:play,x:153,duration:900,yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
-      card.setSize(424,139).setInteractive({useHandCursor:true});
+      card.setSize(424,123).setInteractive({useHandCursor:true});
       let opening=false;
       card.on('pointerdown',()=>this.tweens.add({targets:card,scale:.98,duration:90}));
       card.on('pointerout',()=>this.tweens.add({targets:card,scale:1,duration:90}));
@@ -121,15 +130,18 @@ class CastleGame extends Phaser.Scene {
         if(opening)return;opening=true;card.disableInteractive();
         this.sparkles(385,y+31);chime([523,659,784]);
         this.time.delayedCall(180,()=>{
-          if(id!==save.story)save=restoreStory(id,save.sound);
+          this.showPets=id==='pets';
+          if(id!=='pets'&&id!==save.story)save=restoreStory(id,save.sound);
           persist(save);this.showStories=false;this.category='dress';this.scene.restart();
         });
       });
-      card.setAlpha(0).setX(262);
+      card.setAlpha(.01).setX(262);
       this.tweens.add({targets:card,x:240,alpha:1,duration:330,delay:i*100,ease:'Sine.easeOut'});
     });
-    this.button(240,757,410,'Заново: '+this.story.name,()=>{
-      save={...fresh(save.story),sound:save.sound};persist(save);this.showStories=false;this.category='dress';this.scene.restart();
+    this.button(240,757,410,'Заново: '+(this.showPets?'Забота о питомце':this.story.name),()=>{
+      if(this.showPets)resetPetCare();
+      else {save={...fresh(save.story),sound:save.sound};persist(save);}
+      this.showStories=false;this.category='dress';this.scene.restart();
     },true,'replay');
     this.text(240,809,'Нажми на сказку, чтобы начать или продолжить',11,muted).setOrigin(.5);
   }

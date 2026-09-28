@@ -7,7 +7,7 @@ async function tap(page:Page,x:number,y:number){const b=await page.locator('canv
 async function enterSaved(page:Page,stage:string){
  await ready(page,'stories');const saved=await read(page).catch(()=>null);
  const index=['castle','space','forest'].indexOf(saved?.story||'castle');
- await tap(page,240,270+157*index);await ready(page,stage);
+ await tap(page,240,225+139*index);await ready(page,stage);
 }
 
 test('Full story, invalid drop, drag, persistence, gift and restart',async({page})=>{
@@ -111,7 +111,7 @@ test('Three stories, independent progress and interactive finales',async({page})
  await page.goto('/');await enterSaved(page,'dress');
  await tap(page,295,638);
  await tap(page,377,45);await ready(page,'stories');await page.screenshot({path:'test-results/stories.png'});
- await tap(page,240,427);await ready(page,'dress');
+ await tap(page,240,364);await ready(page,'dress');
  await expect(page.locator('#game')).toHaveAttribute('data-story','space');
  await tap(page,185,638);await page.screenshot({path:'test-results/space-outfit.png'});
  await tap(page,240,757);await ready(page,'castle');
@@ -122,7 +122,7 @@ test('Three stories, independent progress and interactive finales',async({page})
  for(const x of [75,185,295,405])await tap(page,x,649);
  await page.screenshot({path:'test-results/space-party.png'});
  await tap(page,368,531);expect((await read(page)).giftOpened).toBe(true);
- await tap(page,390,757);await ready(page,'stories');await tap(page,240,584);await ready(page,'dress');
+ await tap(page,390,757);await ready(page,'stories');await tap(page,240,503);await ready(page,'dress');
  await expect(page.locator('#game')).toHaveAttribute('data-story','forest');
  expect((await read(page)).pieces).toEqual([]);
  await tap(page,405,638);await tap(page,240,757);await ready(page,'castle');
@@ -130,9 +130,9 @@ test('Three stories, independent progress and interactive finales',async({page})
  await expect.poll(async()=>(await read(page)).pieces.length).toBe(4);
  await tap(page,240,757);await ready(page,'party');await tap(page,240,448);await page.waitForTimeout(800);
  await tap(page,405,649);await tap(page,295,649);await page.screenshot({path:'test-results/forest-party.png'});
- await tap(page,377,45);await ready(page,'stories');await tap(page,240,270);await ready(page,'dress');
+ await tap(page,377,45);await ready(page,'stories');await tap(page,240,225);await ready(page,'dress');
  expect((await read(page)).outfit.dress).toBe(2);expect((await read(page)).pieces).toEqual([]);
- await tap(page,377,45);await ready(page,'stories');await tap(page,240,427);await ready(page,'party');
+ await tap(page,377,45);await ready(page,'stories');await tap(page,240,364);await ready(page,'party');
  expect((await read(page)).story).toBe('space');expect((await read(page)).outfit.dress).toBe(1);expect((await read(page)).giftOpened).toBe(true);
  await page.reload();await enterSaved(page,'party');expect((await read(page)).story).toBe('space');expect(errors).toEqual([]);
 });
@@ -140,8 +140,27 @@ test('Three stories, independent progress and interactive finales',async({page})
 test('Animated home is the first screen and resumes the selected story',async({page})=>{
  await page.goto('/');await ready(page,'stories');await page.waitForTimeout(350);
  await page.screenshot({path:'test-results/home.png'});
- await tap(page,240,427);await ready(page,'dress');await tap(page,295,638);
+ await tap(page,240,364);await ready(page,'dress');await tap(page,295,638);
  await page.reload();await ready(page,'stories');
- await tap(page,240,427);await ready(page,'dress');
+ await tap(page,240,364);await ready(page,'dress');
  expect((await read(page)).story).toBe('space');expect((await read(page)).outfit.dress).toBe(2);
+});
+
+test('Pet care supports both pets, every activity, dragging and saved progress',async({page})=>{
+ const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto('/');await ready(page,'stories');await tap(page,240,642);await ready(page,'pets');
+ await expect(page.locator('#game')).toHaveAttribute('data-pet','cat');
+ for(const [x,action] of [[75,'wash'],[185,'brush'],[295,'feed'],[405,'play']] as const){
+  await tap(page,x,608);await expect.poll(async()=>await page.locator('#game').getAttribute('data-care')).toContain(action);
+ }
+ await page.screenshot({path:'test-results/pet-cat.png'});
+ await tap(page,302,194);await ready(page,'pets');await expect(page.locator('#game')).toHaveAttribute('data-pet','dog');
+ await expect(page.locator('#game')).toHaveAttribute('data-care','');
+ await page.mouse.move(75,608);await page.mouse.down();await page.mouse.move(240,390,{steps:14});await page.mouse.up();
+ await expect(page.locator('#game')).toHaveAttribute('data-care','wash');
+ await tap(page,185,608);await page.waitForTimeout(400);await page.screenshot({path:'test-results/pet-dog.png'});await page.waitForTimeout(1200);
+ await page.reload();await ready(page,'stories');await tap(page,240,642);await ready(page,'pets');
+ await expect(page.locator('#game')).toHaveAttribute('data-pet','dog');await expect(page.locator('#game')).toHaveAttribute('data-care','wash,brush');
+ await tap(page,178,194);await ready(page,'pets');await expect(page.locator('#game')).toHaveAttribute('data-care','wash,brush,feed,play');
+ await tap(page,240,757);await ready(page,'stories');await tap(page,240,225);await ready(page,'dress');expect(errors).toEqual([]);
 });
