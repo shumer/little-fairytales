@@ -1,75 +1,75 @@
-# Маленькие сказки
+# Little Fairytales
 
-Первый игровой прототип для ребенка: переодевание принцессы, сборка замка, кот и подарок. TypeScript + Phaser 3 + Vite. Готовые файлы работают без серверной логики, аккаунтов, рекламы и внешних API.
+A small game prototype for children: dress up a princess, build a castle, meet a cat, and open a gift. Built with TypeScript, Phaser 3, and Vite. The built files run without backend logic, accounts, ads, or external APIs.
 
-## Запуск
+## Getting started
 
 ```sh
 npm ci
 npm run dev
 ```
 
-Для проверки собранной версии и офлайн-режима:
+To preview the production build and test offline mode:
 
 ```sh
 npm run build
 npm run preview -- --port 4174
 ```
 
-Адрес на компьютере: http://localhost:4174. Vite также выводит адрес для телефона в той же сети Wi-Fi. Сервер должен оставаться запущенным.
+Open http://localhost:4174 on your computer. Vite also prints a network address that you can open on a phone connected to the same Wi-Fi network. Keep the server running while playing.
 
-## Как играть
+## How to play
 
-1. Выбрать одежду, обувь, корону или бантик, серьги. В каждой категории четыре варианта, серьги можно снять. На вещи можно нажимать или переносить их на принцессу.
-2. Нажать кнопку перехода к замку. Выбрать одну из четырех расцветок замка. Поставить четыре детали нажатием или перетаскиванием на силуэт. Нажатие на готовую деталь или ее карточку переключает три варианта оформления.
-3. Перейти к гостю, нажать на дверь, затем на кота и подарок.
+1. Choose clothes, shoes, a crown or bow, and earrings. Each category has four options, and earrings can be removed. Tap an item or drag it onto the princess.
+2. Continue to the castle. Choose one of four castle colors. Place four pieces by tapping them or dragging them onto their outlines. Tap a placed piece or its card to cycle through three designs.
+3. Continue to the visitor scene, tap the door, then tap the cat and the gift.
 
-Неверное перетаскивание возвращает предмет в лоток. Рядом с целью деталь притягивается. Наряд, этап, детали, подарок и настройка звука сохраняются в localStorage. Кнопка новой сказки сбрасывает прохождение. Кнопка другого наряда сохраняет собранный замок.
+An incorrect drop returns the item to the tray. Pieces snap into place when dropped near their target. The outfit, stage, building pieces, gift, and sound preference are saved in localStorage. Starting a new story resets its progress. Returning to the outfit keeps the completed castle.
 
-## Android и офлайн
+## Android and offline play
 
-В production-сборке service worker заранее сохраняет все ресурсы. На localhost офлайн-запуск проверен автоматическим тестом. Для установки и офлайн-работы на Android нужен HTTPS-хостинг: обычный сетевой адрес http://192.168... подходит для первой игры по Wi-Fi, но не включает service worker. Сначала необходимо полностью открыть игру с сетью. Очистка данных браузера удаляет сохранение и кэш.
+The production build uses a service worker to cache all assets. Offline startup on localhost is covered by an automated test. Installation and offline play on Android require HTTPS hosting. A local network address such as http://192.168... works for an initial Wi-Fi play session, but does not enable the service worker. Open the game fully while online before playing offline. Clearing browser data removes both saved progress and cached assets.
 
-Адрес GitHub Pages: https://shumer.github.io/little-fairytales/. Публикация выполняется GitHub Actions после успешной сборки и браузерных проверок. На физическом Android эта версия еще не проверена. Проверены Chrome на компьютере и эмуляция небольшого сенсорного экрана.
+Play on GitHub Pages: https://shumer.github.io/little-fairytales/. GitHub Actions publishes the game after a successful build and browser tests. This version has not yet been verified on a physical Android device. Checks cover desktop Chrome and an emulated small touchscreen.
 
-## Проверки
+## Checks
 
 ```sh
 npm run build
 npm test
 ```
 
-Тестам нужен установленный Google Chrome. Playwright проверяет полный сценарий, неверный и правильный перенос детали, сохранение после перезагрузки, открытие подарка, сброс, загрузку без сети, касания на небольшом экране и восстановление после поврежденного сохранения.
+Local tests require Google Chrome. Playwright checks the complete story, incorrect and correct drag-and-drop, progress after reloading, opening the gift, restarting, offline loading, touch input on a small screen, and recovery from corrupted saves. Tests also cover story selection, independent progress, music controls, and pet care.
 
-## Файлы
+## Files
 
-- `src/main.ts`: сцены, взаимодействия, анимации, синтез звуков.
-- `src/art.ts`: векторные слои персонажа, одежды и игровые предметы.
-- `src/state.ts`: проверка и сохранение состояния.
-- `public/garden.png`: фон, созданный встроенным ImageGen.
-- `ART.md`: описание и исходный промпт фона.
-- `scripts/offline.mjs`: создание кэша production-сборки.
+- `src/main.ts`: scenes, interactions, animations, and sound effects.
+- `src/art.ts`: vector layers for characters, clothing, and game items.
+- `src/state.ts`: state validation and persistence.
+- `public/garden.png`: background generated with the built-in ImageGen tool.
+- `ART.md`: background description and original prompt.
+- `scripts/offline.mjs`: production cache generation.
 
-В игре три сказки: праздник в замке, космические друзья и домик дракончика. У каждой свои наряды или расцветки, постройка, детали и гость. Анимации простые, без полноценной ходьбы. Надписи русские, озвучки инструкций пока нет. Следующая проверка должна быть с ребенком: понятны ли действия, удобно ли попадать и хочется ли повторить сказку.
+The game includes three fairytales: a castle party, space friends, and a dragon's home. Each has its own outfits or colors, building, pieces, and visitor. Animations are simple and do not include full walking cycles. In-game text is in Russian, and spoken instructions are not yet available. Further playtesting with a child should check whether the actions are clear, touch targets are comfortable, and the stories are fun to repeat.
 
-## Музыка
+## Music
 
-Встроенный оригинальный вальс из 16 тактов, около 34 секунд на цикл: мягкая музыкальная шкатулка и тихое сопровождение. Синтезируется через Web Audio без внешних файлов. Запускается после первого касания. Кнопка динамика выключает музыку и эффекты, настройка сохраняется. При скрытии страницы звук приостанавливается. Переход между сценами не запускает второй экземпляр мелодии. Ноты и управление звуком находятся в `src/music.ts`.
+An original 16-bar waltz loops roughly every 34 seconds, with a soft music-box sound and quiet accompaniment. It is synthesized through Web Audio without external audio files and starts after the first interaction. The speaker button mutes both music and effects, and the preference is saved. Audio pauses when the page is hidden. Switching scenes does not start a second copy of the melody. Notes and audio controls are in `src/music.ts`.
 
-## Выбор сказки и праздник
+## Story selection and celebrations
 
-При каждом открытии игры первым появляется анимированный экран выбора: четыре большие карточки, покачивающиеся герои, парящая ракета и мерцающие звездочки. Нажатие на карточку начинает или продолжает сказку. Кнопка с четырьмя цветными квадратиками сверху возвращает на этот экран. Выбор карточки продолжает ее сохранение. Кнопка с круговой стрелкой в меню начинает текущую сказку заново. Прогресс хранится отдельно для каждой сказки.
+Every launch starts with an animated selection screen: four large cards, gently swaying characters, a floating rocket, and twinkling stars. Tap a card to start or resume its activity. The button with four colored squares at the top returns to this screen. Each story has its own saved progress. The circular-arrow button in the menu restarts the current activity.
 
-После открытия двери появляются гость, подарок, конфетти и шарики. Кнопки с картинками запускают танец, шарики, пузыри и особое действие: салют, ракету или сердечки дракончика. Шарики и пузыри лопаются нажатием. Число одновременно появляющихся игрушек ограничено. Из финала можно вернуться к наряду, постройке или выбору сказки.
+Opening the door reveals a visitor, a gift, confetti, and balloons. Picture buttons trigger dancing, balloons, bubbles, and a special action: fireworks, a rocket, or dragon hearts. Tap balloons and bubbles to pop them. The number of simultaneous play objects is limited. From the finale, return to the outfit, building, or story selection.
 
-Описания сказок и позиции деталей: `src/stories.ts`. Векторная графика новых сказок: `src/story-art.ts`.
+Story definitions and piece positions are in `src/stories.ts`. Additional story artwork is in `src/story-art.ts`.
 
-## Публикация
+## Deployment
 
-Изменения в ветке `main` автоматически собираются, проверяются в Chromium и публикуются через GitHub Actions. GitHub Pages должен использовать источник GitHub Actions. Публикуется только содержимое `dist`.
+Changes to `main` are automatically built, tested in Chromium, and published through GitHub Actions. GitHub Pages must use GitHub Actions as its publishing source. Only the contents of `dist` are published.
 
-Чтобы отменить неудачное обновление, отмените соответствующий коммит в `main` и дождитесь успешной публикации. Уже установленная офлайн-версия обновляется при следующем подключении к сети и повторном открытии игры.
+To roll back an update, revert its commit on `main` and wait for a successful deployment. An installed offline copy updates after reconnecting to the internet and reopening the game.
 
-## Забота о питомце
+## Pet care
 
-Четвертая карточка открывает уход за кошкой или собакой. Выберите друга по картинке. Душ, щетку, миску и мяч можно нажать или перенести на питомца. Каждое действие сопровождается анимацией и сердечками. Выполненные действия сохраняются отдельно для кошки и собаки; их можно повторять. Таймеров голода, штрафов и обязательного порядка нет. Погладить питомца можно нажатием на него.
+The fourth card opens a care activity for a cat or dog. Choose a pet using its picture. Tap the shower, brush, bowl, or ball, or drag it onto the pet. Each activity includes animation and hearts. Completed activities are saved separately for the cat and dog and can be repeated. There are no hunger timers, penalties, or required order. Tap the pet to give it affection.
